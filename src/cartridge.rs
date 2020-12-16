@@ -1,7 +1,7 @@
 // Copyright (c) 2020 - Jonathan De Wachter
 //
-// This source file is part of Atari 2600 Emulator which is released under the 
-// MIT license. Please refer to the LICENSE file that can be found at the root 
+// This source file is part of Atari 2600 Emulator which is released under the
+// MIT license. Please refer to the LICENSE file that can be found at the root
 // of the project directory.
 //
 // Written by Jonathan De Wachter <dewachter.jonathan@gmail.com>, September 2020
@@ -13,17 +13,17 @@ use std::fs::File;
 use std::string::String;
 
 /// Game cartridge of the Atari 2600 gaming console.
-/// 
-/// A cartridge contains up to 4k ROm which is mapped to the RAM from 0x_1000 to 
+///
+/// A cartridge contains up to 4k ROm which is mapped to the RAM from 0x_1000 to
 /// 0x_1FFF. It contains metadata such as X, Y.
-/// 
+///
 /// TODO; To be implemented.
-/// 
+///
 /// Pending notes:
 /// --------------
 /// - if the rom is less than 4k, the entire reserved memory isn't filled up
 /// - memory also ROM, or EPROM
-/// 
+///
 pub struct Cartridge {
     pub name: String,
     pub manufacturer: String,
@@ -46,11 +46,9 @@ impl Cartridge {
     }
 
     pub fn from_reader<R: Read>(reader: &mut R) -> io::Result<Cartridge> {
-        let bytes = Vec::new();
-        // reader.read_to_end(&mut bytes)?;
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes)?;
 
-        // TODO; To be implemented.
-    
         Ok(Cartridge::new(bytes))
     }
 

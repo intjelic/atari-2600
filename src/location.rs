@@ -1,15 +1,18 @@
 // Copyright (c) 2020 - Jonathan De Wachter
 //
-// This source file is part of Atari 2600 Emulator which is released under the 
-// MIT license. Please refer to the LICENSE file that can be found at the root 
+// This source file is part of Atari 2600 Emulator which is released under the
+// MIT license. Please refer to the LICENSE file that can be found at the root
 // of the project directory.
 //
 // Written by Jonathan De Wachter <dewachter.jonathan@gmail.com>, November 2020
 
-// Each memory location has official label; find some constants here to make 
-// the code more readable. The list was taken from there: 
-// https://problemkaputt.de/2k6specs.htm#controllersjoysticks
+// Some constants may never be used in the code but it's nice to keep an
+// exhaustive list of the constants.
+#![allow(dead_code)]
 
+// Each memory location has official label; find some constants here to make
+// the code more readable. The list was taken from there:
+// https://problemkaputt.de/2k6specs.htm#controllersjoysticks
 pub(crate) const VSYNC  : u16 = 0x_0000; // ......1.  vertical sync set-clear
 pub(crate) const VBLANK : u16 = 0x_0001; // 11....1.  vertical blank set-clear
 pub(crate) const WSYNC  : u16 = 0x_0002; // <strobe>  wait for leading edge of horizontal blank
