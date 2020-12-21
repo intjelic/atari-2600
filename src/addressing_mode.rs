@@ -189,16 +189,16 @@ pub fn absolute_y(console: &mut Console) -> (u16, bool) {
 /// TODO; To be written.
 ///
 pub fn indexed_indirect(console: &mut Console) -> u16 {
-    let indirect_index = console.pointed_value().wrapping_add(console.x_register);
+    let index = console.pointed_value().wrapping_add(console.x_register);
     console.advance_pointer();
 
-    let ll = *console.memory(indirect_index as u16);
+    let ll = *console.memory(index as u16);
     // TODO; Make sure indirect_index + 1 is within page 0, otherwise it's illegal operation I think.
-    let hh = *console.memory(indirect_index as u16 + 1);
+    let hh = *console.memory(index as u16 + 1);
 
-    let index = u16::from_le_bytes([ll, hh]);
+    let indirect_index = u16::from_le_bytes([ll, hh]);
 
-    index
+    indirect_index
 }
 
 
@@ -213,15 +213,25 @@ pub fn indexed_indirect(console: &mut Console) -> u16 {
 /// TODO; To be written.
 ///
 pub fn indirect_indexed(console: &mut Console) -> (u16, bool) {
-    let operand = *console.pointed_value();
+
+    let index = *console.pointed_value() as u16; 
     console.advance_pointer();
 
-    let indirect_index = console.memory(operand as u16).wrapping_add(console.y_register);
+    // Not my proudest code, definitively messy.
+    let ll = *console.memory(index);
+    match ll.overflowing_add(console.y_register) {
+        (value, false) => {
+            let hh = *console.memory(index + 1);
+            let indirect_index = u16::from_le_bytes([value, hh]);
 
-    let ll = *console.memory(indirect_index as u16);
-    let hh = *console.memory(indirect_index as u16 + 1);
+            (indirect_index, false)
+        },
+        (value, true) => {
+            let hh = *console.memory(index + 1);
+            // TODO; Potential overflow with hh + 1; what to do ?
+            let indirect_index = u16::from_le_bytes([value, hh + 1]);
 
-    let index = u16::from_le_bytes([ll, hh]);
-
-    (index, false)
+            (indirect_index, true)
+        }
+    }
 }
