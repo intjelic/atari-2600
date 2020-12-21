@@ -1020,37 +1020,41 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_foo() {
-
-        // Test test01.bin
-
-        let cartridge = Cartridge::from_file("/home/intjelic/Workspace/atari-2600/kernel_01.bin").unwrap();
-        let mut console = Console::new(cartridge);
-
-        for _ in 0..10000 {
-            // println!("test");
-            console.update(CYCLE_DURATION);
-        }
-
-
-    }
-
-    #[test]
     fn test_subroutine() {
         // A quick test to make sure subroutines work.
-        let mut console = Console::new(Cartridge::new(vec![]));
 
-        // TODO; To be implemented.
+        // Create a ROM to put the console into different states and check if
+        // the states are correct.
+        let mut rom = vec![
+            0x_A9, 0x_00,        // Load accumulator with value 0
+            0x_20, 0x_42, 0x_F1, // Jump to subroutine at location 0x_4221
+            0x_A9, 0x_00,        // Load accumulator with value 0
+        ];
+        // TODO; Here I'm accounting for the beginning of the ROM but it should
+        // be handled in a better way. F000 F142
+        rom.resize(0x_0142 + 3 + 1, 0x_FF); // the +1 is because it needs to advance pointer at the end of execution of instruction
+        rom[0x_0142 + 0] = 0x_A9; // The subroutine loads accumulator with value 42...
+        rom[0x_0142 + 1] = 0x_42;
+        rom[0x_0142 + 2] = 0x_60; // ... then return to the caller
 
-        // setup_instruction(&mut console, vec![0x_6C, 0x_42, 0x_31, 0x_C8]);
-        // *console.memory_mut(0x_3142) = 0x_E8;
-        // *console.memory_mut(0x_3142 + 1) = 0x_60;
+        let cartridge = Cartridge::new(rom);
 
-        // let cycles = execute_instruction(&mut console, jrs_instruction);
-        // let cycles = execute_instruction(&mut console, inx_instruction);
-        // let cycles = execute_instruction(&mut console, rts_instruction);
-        // let cycles = execute_instruction(&mut console, iny_instruction);
+        // Create the console and advance the simulation slightly forward to
+        // avoid being on the cycle edges.
+        let mut console = Console::new(cartridge);
+        console.update_accurate(CYCLE_DURATION / 10); // slightly advance the simulation
 
+        // Execute the ROM step by step with checking at relevant places.
+        console.update_accurate(CYCLE_DURATION * 2); // load accumulator with value 0
+        assert_eq!(console.accumulator, 0);
+
+        console.update_accurate(CYCLE_DURATION * 6); // jump to subroutine
+        console.update_accurate(CYCLE_DURATION * 2); // load accumulator with value 42
+        assert_eq!(console.accumulator, 0x_42);
+
+        console.update_accurate(CYCLE_DURATION * 6); // return to the caller
+        console.update_accurate(CYCLE_DURATION * 2); // load accumulator with value 0
+        assert_eq!(console.accumulator, 0);
     }
 
     #[test]
