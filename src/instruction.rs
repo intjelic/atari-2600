@@ -1632,26 +1632,46 @@ mod test {
 
             assert_eq!(cycles, 6);
         }
+    }
 
-        // // (indirect),Y  ADC (oper),Y  71    2     5*
-        // {
-        //     setup_instruction(&mut console, vec![0x_00, 0x_00]);
-        //     console.memory[0x_00] = 0x_00;
+    #[test]
+    fn test_adc_instruction_indirect_indexed() {
 
-        //     console.accumulator = 0x_0;
-        //     console.carry_flag = true;
-        //     console.zero_flag = true;
-        //     console.negative_flag = true;
+        let mut console = Console::new(Cartridge::new(vec![]));
 
-        //     let cycles = execute_instruction(&mut console, adc_instruction);
+        {
+            setup_instruction(&mut console, vec![0x_71, 0x_42]);
+            console.y_register = 0x_B7;
+            *console.memory_mut(0x_42)     = 0x_24;
+            *console.memory_mut(0x_42 + 1) = 0x_11;
 
-        //     assert_eq!(console.accumulator, 0x_00);
-        //     assert_eq!(console.carry_flag, true);
-        //     assert_eq!(console.zero_flag, false);
-        //     assert_eq!(console.negative_flag, false);
+            console.carry_flag = false;
+            console.accumulator = 0x_00;
+            *console.memory_mut(0x_11DB) = 0x_FF;
 
-        //     assert_eq!(cycles, 0);
-        // }
+            let cycles = execute_instruction(&mut console, adc_instruction);
+
+            assert_eq!(console.accumulator, 0x_FF);
+
+            assert_eq!(cycles, 5);
+        }
+
+        {
+            setup_instruction(&mut console, vec![0x_71, 0x_42]);
+            console.y_register = 0x_87;
+            *console.memory_mut(0x_42)     = 0x_A3;
+            *console.memory_mut(0x_42 + 1) = 0x_11;
+
+            console.carry_flag = false;
+            console.accumulator = 0x_00;
+            *console.memory_mut(0x_122A) = 0x_FF;
+
+            let cycles = execute_instruction(&mut console, adc_instruction);
+
+            assert_eq!(console.accumulator, 0x_FF);
+
+            assert_eq!(cycles, 6);
+        }
     }
 
     #[test]
@@ -2219,7 +2239,7 @@ mod test {
     #[test]
     fn test_cmp_instruction() {
 
-        // It doesn't test the different adressing mode because it's already
+        // It doesn't test the different addressing mode because it's already
         // tested by the other instructions. Perhaps the number of cycles should
         // be tested though.
         let mut console = Console::new(Cartridge::new(vec![]));
@@ -3067,7 +3087,7 @@ mod test {
     #[test]
     fn test_sta_instruction() {
 
-        // different adress mode aren't tested here
+        // different address mode aren't tested here
         let mut console = Console::new(Cartridge::new(vec![]));
         setup_instruction(&mut console, vec![0x_85, 127]);
 
