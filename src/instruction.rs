@@ -228,10 +228,10 @@ pub fn asl_instruction(console: &mut Console, opcode: u8) -> u32 {
         0x_0A => (&mut console.accumulator, 2),
         _ => {
             let (index, cycles) = match opcode {
-                0x_06 => (zero_page(console), 0),
-                0x_16 => (zero_page_x(console), 0),
-                0x_0E => (absolute(console), 0),
-                0x_1E => (absolute_x(console).0, 0),
+                0x_06 => (zero_page(console),    5),
+                0x_16 => (zero_page_x(console),  6),
+                0x_0E => (absolute(console),     6),
+                0x_1E => (absolute_x(console).0, 7),
                 _ => panic!("opcode {:#X} not associated to ASL instruction", opcode)
             };
 
