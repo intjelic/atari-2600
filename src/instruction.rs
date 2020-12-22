@@ -1027,10 +1027,34 @@ pub fn ldy_instruction(console: &mut Console, opcode: u8) -> u32 {
 ///
 /// Long description.
 ///
-pub fn lsr_instruction(_console: &mut Console, _opcode: u8) -> u32 {
+pub fn lsr_instruction(console: &mut Console, opcode: u8) -> u32 {
 
-    // TODO; To be implemented.
-    0
+    let (operand, cycles) = match opcode {
+        0x_4A => (&mut console.accumulator, 2),
+        _ => {
+            let (index, cycles) = match opcode {
+                0x_46 => (zero_page(console),    5),
+                0x_56 => (zero_page_x(console),  6),
+                0x_4E => (absolute(console),     6),
+                0x_5E => (absolute_x(console).0, 7),
+                _ => panic!("opcode {:#X} not associated to LSR instruction", opcode)
+            };
+
+            (console.memory_mut(index), cycles)
+        }
+    };
+
+    shift_right(operand, false, &mut console.carry_flag);
+
+    // Note that while the zero flag must always be set to 0, this function will
+    // always update it correctly since the entering bit was 0.
+    update_zero_and_negative_flags(
+        operand,
+        &mut console.zero_flag,
+        &mut console.negative_flag,
+    );
+
+    cycles
 }
 
 /// The NOP instruction.
@@ -2778,7 +2802,51 @@ mod test {
 
     #[test]
     fn test_lsr_instruction() {
-        // To be implemented.
+
+        // It doesn't test the different adressing mode because it's already
+        // tested by the other instructions. Perhaps the number of cycles should
+        // be tested though.
+        let mut console = Console::new(Cartridge::new(vec![]));
+
+        {
+            setup_instruction(&mut console, vec![0x_4A]);
+
+            console.carry_flag = true;
+            console.accumulator = 0x_AA;
+
+            console.zero_flag = true;
+            console.negative_flag = true;
+
+            let cycles = execute_instruction(&mut console, lsr_instruction);
+
+            console.carry_flag = true;
+            assert_eq!(console.accumulator, 0x_55);
+
+            assert_eq!(console.zero_flag, false);
+            assert_eq!(console.negative_flag, false);
+
+            assert_eq!(cycles, 2);
+        }
+
+        {
+            setup_instruction(&mut console, vec![0x_46, 0x_42]);
+
+            console.carry_flag = true;
+            *console.memory_mut(0x_42) = 0x_AA;
+
+            console.zero_flag = true;
+            console.negative_flag = true;
+
+            let cycles = execute_instruction(&mut console, lsr_instruction);
+
+            console.carry_flag = true;
+            assert_eq!(*console.memory(0x_42), 0x_55);
+
+            assert_eq!(console.zero_flag, false);
+            assert_eq!(console.negative_flag, false);
+
+            assert_eq!(cycles, 5);
+        }
     }
 
     #[test]
